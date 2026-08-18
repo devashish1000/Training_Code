@@ -1,0 +1,753 @@
+<title>Dual-Phone Coding Assistant</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --page-bg: #f3f1ea;
+    --grid-line: rgba(50,54,44,0.07);
+    --ink: #23251e;
+    --ink-soft: #6a6d5f;
+    --ink-faint: #93958a;
+    --panel-bg: #fffefb;
+    --panel-line: #c9c5b4;
+    --panel-line-strong: #a7a28d;
+    --accent: #3d5a80;
+    --accent-soft: #e6ecf3;
+    --accent-ink: #2c4460;
+    --badge-ink: #ffffff;
+    --rule: #d8d4c5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page-bg: #14161a;
+      --grid-line: rgba(255,255,255,0.055);
+      --ink: #e9e6da;
+      --ink-soft: #a4a89a;
+      --ink-faint: #6d7166;
+      --panel-bg: #1b1e23;
+      --panel-line: #383c3f;
+      --panel-line-strong: #4c5155;
+      --accent: #86a9d6;
+      --accent-soft: #212a35;
+      --accent-ink: #bcd2ec;
+      --badge-ink: #10141a;
+      --rule: #2c2f33;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --page-bg: #14161a;
+    --grid-line: rgba(255,255,255,0.055);
+    --ink: #e9e6da;
+    --ink-soft: #a4a89a;
+    --ink-faint: #6d7166;
+    --panel-bg: #1b1e23;
+    --panel-line: #383c3f;
+    --panel-line-strong: #4c5155;
+    --accent: #86a9d6;
+    --accent-soft: #212a35;
+    --accent-ink: #bcd2ec;
+    --badge-ink: #10141a;
+    --rule: #2c2f33;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--page-bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 28px 80px;
+  }
+
+  /* ---------- header / title block ---------- */
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+    max-width: 18ch;
+  }
+
+  .dek {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0 0 28px;
+  }
+
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    border: 1px solid var(--panel-line);
+    background: var(--panel-bg);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    margin-bottom: 44px;
+  }
+
+  .titleblock dt {
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 10px;
+    margin-bottom: 5px;
+  }
+
+  .titleblock dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .titleblock > div {
+    padding: 12px 16px;
+    border-right: 1px solid var(--rule);
+  }
+
+  .titleblock > div:last-child { border-right: none; }
+
+  /* ---------- flow strip ---------- */
+
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 40px;
+  }
+
+  .flow .step {
+    padding: 6px 12px;
+    border: 1px solid var(--panel-line);
+    background: var(--panel-bg);
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  .flow .arrow { color: var(--accent); font-weight: 600; }
+
+  /* ---------- phones grid ---------- */
+
+  .stage {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 56px;
+    align-items: start;
+  }
+
+  .device-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .device-head {
+    text-align: center;
+    margin-bottom: 22px;
+    max-width: 320px;
+  }
+
+  .device-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    background: var(--accent-soft);
+    border: 1px solid var(--panel-line);
+    padding: 5px 10px 5px 8px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+  }
+
+  .device-tag .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    flex: none;
+  }
+
+  .device-name { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+
+  .device-sub {
+    font-size: 13px;
+    color: var(--ink-faint);
+    font-style: italic;
+    margin: 0;
+  }
+
+  /* ---------- phone chrome ---------- */
+
+  .phone {
+    position: relative;
+    width: 300px;
+    height: 620px;
+    border-radius: 46px;
+    padding: 14px;
+    background: linear-gradient(160deg, #3a3c3f, #1a1b1d);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 30px 60px -25px rgba(0,0,0,0.45);
+    flex: none;
+  }
+
+  .phone::before {
+    content: "";
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    width: 108px; height: 24px;
+    background: #0c0d0e;
+    border-radius: 14px;
+    z-index: 5;
+  }
+
+  .screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 34px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .marker {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--badge-ink);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.35);
+    z-index: 6;
+  }
+
+  /* ---------- Phone A: capture mode screen ---------- */
+
+  .screen-a {
+    background: #e7e5df;
+    font-family: "IBM Plex Sans", sans-serif;
+  }
+
+  .cam-preview {
+    position: relative;
+    height: 54%;
+    background: repeating-linear-gradient(135deg, #46494c, #46494c 2px, #3d4043 2px, #3d4043 4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .monitor-sim {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #1d2b33;
+    border: 2px solid #0e1519;
+    border-radius: 4px;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .monitor-sim .code-bar { height: 6px; background: #3d5a6b; border-radius: 2px; opacity: 0.85; }
+  .monitor-sim .code-bar.short { width: 55%; }
+  .monitor-sim .code-bar.med { width: 78%; }
+  .monitor-sim .code-bar.long { width: 92%; }
+  .monitor-sim .code-bar.accentbar { background: #6f9bb5; }
+
+  .viewfinder {
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+  }
+  .viewfinder span {
+    position: absolute;
+    width: 16px; height: 16px;
+    border-color: rgba(255,255,255,0.55);
+    border-style: solid;
+    border-width: 0;
+  }
+  .viewfinder .tl { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+  .viewfinder .tr { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+  .viewfinder .bl { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+  .viewfinder .br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+
+  .rec-pill {
+    position: absolute;
+    top: 10px; left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(20,20,20,0.55);
+    border-radius: 10px;
+    padding: 3px 8px 3px 6px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9px;
+    color: #f2e6e6;
+    letter-spacing: 0.04em;
+  }
+  .rec-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #e0503f;
+    animation: pulse-rec 1.6s ease-in-out infinite;
+  }
+
+  .status-block {
+    flex: 1;
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #eeece6;
+  }
+
+  .status-now {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .status-now .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #b8860b;
+    box-shadow: 0 0 0 4px rgba(184,134,11,0.18);
+    flex: none;
+    animation: pulse-status 2.2s ease-in-out infinite;
+  }
+  .status-now .txt {
+    font-size: 15px;
+    font-weight: 600;
+    color: #22241d;
+  }
+
+  .status-log {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-left: 19px;
+    color: #8b8d80;
+  }
+  .status-log .now { color: #4a4c40; font-weight: 600; }
+
+  .anchor-chip {
+    margin-top: auto;
+    border: 1px solid #c7c3b3;
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 10px 12px;
+  }
+  .anchor-chip .lbl {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #93907e;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .anchor-chip .val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #22241d;
+  }
+
+  .footnote-line {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 9px;
+    color: #a19d8a;
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---------- Phone B: display mode screen ---------- */
+
+  .screen-b {
+    background: #12141a;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  .pin-top {
+    flex: none;
+    padding: 16px 16px 12px;
+    background: #181b22;
+    border-bottom: 1px solid #262a33;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .pin-top .qlabel {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f2f1ea;
+    letter-spacing: 0.01em;
+  }
+  .pin-top .qtag {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #6f7684;
+  }
+
+  .scroll-viewport {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    mask-image: linear-gradient(to bottom, transparent 0, black 22px, black calc(100% - 22px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 22px, black calc(100% - 22px), transparent 100%);
+  }
+
+  .scroll-track {
+    padding: 16px 16px 40px;
+    animation: auto-scroll 16s cubic-bezier(0.65,0,0.35,1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-track { animation: none; }
+    .rec-dot, .status-now .dot { animation: none; }
+  }
+
+  .code-line {
+    font-size: 11.5px;
+    line-height: 1.85;
+    white-space: pre;
+    color: #c7cbd1;
+  }
+  .code-line .kw { color: #7fb3d9; }
+  .code-line .fn { color: #d5b778; }
+  .code-line .str { color: #a3c78a; }
+  .code-line .cm { color: #676f7f; font-style: italic; }
+  .code-line .num { color: #c48a6b; }
+  .code-line.blank { height: 1.85em; }
+
+  .pin-bottom {
+    flex: none;
+    padding: 9px 16px;
+    background: #181b22;
+    border-top: 1px solid #262a33;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pin-bottom .sync-txt {
+    font-size: 9.5px;
+    color: #5c6270;
+    letter-spacing: 0.02em;
+  }
+  .pin-bottom .sync-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #6fae7a;
+  }
+
+  @keyframes auto-scroll {
+    0%    { transform: translateY(0); }
+    8%    { transform: translateY(0); }
+    46%   { transform: translateY(-62%); }
+    58%   { transform: translateY(-62%); }
+    58.6% { transform: translateY(0); }
+    100%  { transform: translateY(0); }
+  }
+
+  @keyframes pulse-rec {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+  @keyframes pulse-status {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(184,134,11,0.18); }
+    50% { box-shadow: 0 0 0 7px rgba(184,134,11,0.06); }
+  }
+
+  /* ---------- legend ---------- */
+
+  .legend {
+    margin-top: 26px;
+    width: 100%;
+    max-width: 340px;
+    border: 1px solid var(--panel-line);
+    background: var(--panel-bg);
+  }
+
+  .legend-row {
+    display: flex;
+    gap: 12px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .legend-row:last-child { border-bottom: none; }
+
+  .legend-num {
+    flex: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    border: 1px solid var(--panel-line-strong);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .legend-body .h {
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .legend-body .p {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* ---------- footer note ---------- */
+
+  .foot {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  a { color: inherit; }
+
+  @media (max-width: 720px) {
+    .titleblock { grid-template-columns: repeat(2, 1fr); }
+    .titleblock > div:nth-child(2) { border-right: none; }
+  }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Wireframe — Screen Spec · Low/Mid Fidelity</p>
+  <h1>Dual-Phone Coding Assistant</h1>
+  <p class="dek">
+    Two iPhones, two jobs. Phone A watches a monitor and listens for new questions; Phone B is the
+    only screen you ever read, quietly holding the current answer on loop. This spec shows both
+    screens' layout and states — not a finished UI, and not a line of Swift yet.
+  </p>
+
+  <dl class="titleblock">
+    <div><dt>Project</dt><dd>Coding-Practice Assistant (personal)</dd></div>
+    <div><dt>Stage</dt><dd>Pre-planning · wireframe</dd></div>
+    <div><dt>Screens</dt><dd>2 — Capture, Display</dd></div>
+    <div><dt>Prepared</dt><dd>2026-08-18</dd></div>
+  </dl>
+
+  <div class="flow" aria-hidden="false">
+    <span class="step">Phone A watches monitor</span>
+    <span class="arrow">→</span>
+    <span class="step">Question detected, sent to AI</span>
+    <span class="arrow">→</span>
+    <span class="step">Answer synced to Phone B</span>
+    <span class="arrow">→</span>
+    <span class="step">Phone B loops the answer</span>
+  </div>
+
+  <div class="stage">
+
+    <!-- ===================== PHONE A ===================== -->
+    <div class="device-col">
+      <div class="device-head">
+        <span class="device-tag"><span class="dot"></span>Phone A · Capture Mode</span>
+        <p class="device-name">Capture Mode</p>
+        <p class="device-sub">you never look at this screen during a session</p>
+      </div>
+
+      <div class="phone">
+        <div class="screen screen-a">
+          <div class="marker" style="top:10px; right:10px;">1</div>
+          <div class="cam-preview">
+            <div class="monitor-sim">
+              <div class="rec-pill"><span class="rec-dot"></span>LIVE</div>
+              <div class="viewfinder">
+                <span class="tl"></span><span class="tr"></span>
+                <span class="bl"></span><span class="br"></span>
+              </div>
+              <div class="code-bar med" style="margin-top:26px;"></div>
+              <div class="code-bar long"></div>
+              <div class="code-bar short"></div>
+              <div class="code-bar accentbar med"></div>
+              <div class="code-bar long"></div>
+              <div class="code-bar med"></div>
+              <div class="code-bar short"></div>
+              <div class="code-bar long"></div>
+            </div>
+          </div>
+
+          <div class="status-block">
+            <div class="marker" style="top:172px; left:10px;">2</div>
+            <div class="status-now">
+              <span class="dot"></span>
+              <span class="txt">Sending to AI…</span>
+            </div>
+            <div class="status-log">
+              <span>watching…</span>
+              <span>new question detected</span>
+              <span class="now">→ sending to ai…</span>
+            </div>
+
+            <div class="marker" style="bottom:74px; left:10px;">3</div>
+            <div class="anchor-chip">
+              <span class="lbl">Detected anchor</span>
+              <span class="val">Question 1</span>
+            </div>
+            <p class="footnote-line">background utility · screen locked / face-down is fine</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-row">
+          <span class="legend-num">1</span>
+          <div class="legend-body">
+            <p class="h">Camera preview</p>
+            <p class="p">Live feed of the monitor it's propped against. Viewfinder corners + LIVE pill signal it's actively watching, not just idle camera.</p>
+          </div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-num">2</span>
+          <div class="legend-body">
+            <p class="h">Status indicator + mini log</p>
+            <p class="p">Current state in bold with a pulsing dot; the two prior states sit dimmed above it, so a glance confirms the pipeline is progressing, not stuck.</p>
+          </div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-num">3</span>
+          <div class="legend-body">
+            <p class="h">Detected question anchor</p>
+            <p class="p">The title/number the app locked onto for this question, once identified. Informational only — nothing here is tapped mid-session.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== PHONE B ===================== -->
+    <div class="device-col">
+      <div class="device-head">
+        <span class="device-tag"><span class="dot"></span>Phone B · Display Mode</span>
+        <p class="device-name">Display Mode</p>
+        <p class="device-sub">the only screen you actually watch</p>
+      </div>
+
+      <div class="phone">
+        <div class="screen screen-b">
+          <div class="marker" style="top:8px; right:8px;">1</div>
+          <div class="pin-top">
+            <span class="qlabel">Question 1</span>
+            <span class="qtag">pinned</span>
+          </div>
+
+          <div class="marker" style="top:120px; right:8px; z-index:7;">2</div>
+          <div class="scroll-viewport">
+            <div class="scroll-track">
+              <div class="code-line"><span class="cm">// two-sum — O(n) with a hash map</span></div>
+              <div class="code-line"><span class="kw">func</span> <span class="fn">twoSum</span>(_ nums: [<span class="kw">Int</span>], _ target: <span class="kw">Int</span>) -&gt; [<span class="kw">Int</span>] {</div>
+              <div class="code-line">    <span class="kw">var</span> seen: [<span class="kw">Int</span>: <span class="kw">Int</span>] = [:]</div>
+              <div class="code-line">    <span class="kw">for</span> (i, n) <span class="kw">in</span> nums.enumerated() {</div>
+              <div class="code-line">        <span class="kw">let</span> need = target - n</div>
+              <div class="code-line">        <span class="kw">if let</span> j = seen[need] {</div>
+              <div class="code-line">            <span class="kw">return</span> [j, i]</div>
+              <div class="code-line">        }</div>
+              <div class="code-line">        seen[n] = i</div>
+              <div class="code-line">    }</div>
+              <div class="code-line">    <span class="kw">return</span> []</div>
+              <div class="code-line">}</div>
+              <div class="code-line blank"></div>
+              <div class="code-line"><span class="cm">// walk-through</span></div>
+              <div class="code-line"><span class="cm">// nums = [2, 7, 11, 15], target = 9</span></div>
+              <div class="code-line"><span class="kw">let</span> result = <span class="fn">twoSum</span>([<span class="num">2</span>, <span class="num">7</span>, <span class="num">11</span>, <span class="num">15</span>], <span class="num">9</span>)</div>
+              <div class="code-line"><span class="fn">print</span>(<span class="str">"indices: \(result)"</span>)</div>
+              <div class="code-line blank"></div>
+              <div class="code-line"><span class="cm">// complexity: O(n) time, O(n) space</span></div>
+              <div class="code-line"><span class="cm">// -- end of answer, loop restarts --</span></div>
+            </div>
+          </div>
+
+          <div class="marker" style="bottom:8px; right:8px;">3</div>
+          <div class="pin-bottom">
+            <span class="sync-txt">last updated 2s ago</span>
+            <span class="sync-dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-row">
+          <span class="legend-num">1</span>
+          <div class="legend-body">
+            <p class="h">Pinned question label</p>
+            <p class="p">Stays fixed at the top while everything beneath it scrolls, so you always know which question the answer on screen belongs to.</p>
+          </div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-num">2</span>
+          <div class="legend-body">
+            <p class="h">Auto-scrolling answer</p>
+            <p class="p">Monospace code, steady top-to-bottom scroll with a brief hold at top and bottom before it loops. Edges fade so text doesn't clip abruptly.</p>
+          </div>
+        </div>
+        <div class="legend-row">
+          <span class="legend-num">3</span>
+          <div class="legend-body">
+            <p class="h">Last-updated timestamp</p>
+            <p class="p">Small and low-contrast on purpose — a quiet confirmation the answer is current, not something meant to grab attention.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="foot">low/mid-fidelity wireframe — layout &amp; state intent only, no visual or brand design applied</p>
+
+</div>
