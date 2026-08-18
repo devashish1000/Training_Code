@@ -110,7 +110,12 @@ final class QuestionAnchorDetector {
     /// settle timer restarts. Once `settleDuration` elapses with no
     /// further changes, `onSettled` fires exactly once for that anchor
     /// (never twice in a row for the same anchor).
-    func noteDetectedAnchor(_ anchor: String?, onSettled: @escaping (String) -> Void) {
+    ///
+    /// `onSettled` is `@MainActor` because it's expected to feed straight
+    /// into `CaptureViewModel`'s `@Published` state / trigger the (also
+    /// main-actor) AI + CloudKit calls — this keeps the whole downstream
+    /// chain on the main actor without extra hops at each call site.
+    func noteDetectedAnchor(_ anchor: String?, onSettled: @escaping @MainActor (String) -> Void) {
         guard let anchor, !anchor.isEmpty else {
             // No question currently visible — stop any pending timer, but
             // don't clear `lastFiredAnchor`: if the same question anchor
@@ -130,8 +135,8 @@ final class QuestionAnchorDetector {
         currentCandidateAnchor = anchor
         settleTask?.cancel()
 
-        settleTask = Task {
-            try? await Task.sleep(nanoseconds: UInt64(settleDuration * 1_000_000_000))
+        settleTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(self.settleDuration * 1_000_000_000))
             guard !Task.isCancelled else { return }
             guard self.currentCandidateAnchor == anchor else { return }
             guard self.lastFiredAnchor != anchor else { return }
